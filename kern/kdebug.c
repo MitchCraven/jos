@@ -180,6 +180,21 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 	//	Look at the STABS documentation and <inc/stab.h> to find
 	//	which one.
 	// Your code here.
+	int search_line_stab_type = N_SLINE; //find the correct one
+	bool found_line = false; //current line youre looking for
+	int i = lline;
+	while(i <= rline) {
+		if (stabs[i].n_type == search_line_stab_type) {
+			info->eip_line = stabs[i].n_desc;
+			found_line = true;
+			break;
+		}
+		i++;
+	}
+
+	if(!found_line) {
+		return -1;
+	}
 
 
 	// Search backwards from the line number for the relevant filename

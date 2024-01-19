@@ -89,14 +89,18 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 
     uint32_t* ebp = (uint32_t*)read_ebp();
 
+	cprintf("Stack backtrace:\n"); //print header
+
     while (ebp != 0) {
-        
 		uint32_t eip = ebp[1]; //ebp[1] is the address of the calling function in previous stack
         uint32_t* args = ebp + 2; //ebp[2-6] is all the arguments
 		
-		cprintf("Stack backtrace:\n");
-        cprintf("  ebp %08x  eip %08x  args %08x %08x %08x %08x %08x\n",
-                ebp, eip, args[0], args[1], args[2], args[3], args[4]);
+        cprintf("  ebp %08x  eip %08x  args %08x %08x %08x %08x %08x\n", ebp, eip, args[0], args[1], args[2], args[3], args[4]);
+		
+		struct Eipdebuginfo debug_info2;
+		debuginfo_eip(eip, &debug_info2);
+		cprintf("         %s:%d: %.*s+%d\n", debug_info2.eip_file, debug_info2.eip_line, debug_info2.eip_fn_name, eip - debug_info2.eip_fn_addr);
+
 
         // Move to the next stack frame
         ebp = (uint32_t*)ebp[0];
@@ -104,10 +108,7 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 
-
-
 /***** Kernel monitor command interpreter *****/
-
 #define WHITESPACE "\t\r\n "
 #define MAXARGS 16
 
