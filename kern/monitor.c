@@ -25,6 +25,9 @@ struct Command {
 static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
+	{ "show", "Backtrace through the machine", mon_show },
+	{ "backtrace", "Backtrace through the machine", mon_backtrace }	
+	,
 };
 
 /***** Implementations of basic kernel monitor commands *****/
@@ -36,6 +39,28 @@ mon_help(int argc, char **argv, struct Trapframe *tf)
 
 	for (i = 0; i < ARRAY_SIZE(commands); i++)
 		cprintf("%s - %s\n", commands[i].name, commands[i].desc);
+	return 0;
+}
+
+int mon_show(int argc, char **argv, struct Trapframe *tf) {
+	//cprintf, put ASCII art over here
+	cprintf("\e[1;36m%-6s\e[m", "                __ \n");
+    cprintf("\e[1;35m%-6s\e[m", "              .'  '. \n");
+    cprintf("\e[1;34m%-6s\e[m", "             :      : \n");
+    cprintf("\e[1;33m%-6s\e[m", "             | _  _ | \n");
+    cprintf("\e[1;32m%-6s\e[m", "          .-.|(o)(o)|.-.        _._          _._ \n");
+    cprintf("\e[1;31m%-6s\e[m", "         ( ( | .--. | ) )     .',_ '.      .' _,'. \n");
+    cprintf("\e[1;32m%-6s\e[m", "          '-/ (    ) \\-'     / /' `\\ \\ __ / /' `\\ \\ \n");
+    cprintf("\e[1;33m%-6s\e[m", "           /   '--' \\     / /     \\.'  './     \\ \\ \n");
+    cprintf("\e[1;34m%-6s\e[m", "           \\ `\"====\"` /     `-`     : _  _ :      `-' \n");
+    cprintf("\e[1;35m%-6s\e[m", "            `\\      /'              |(o)(o)| \n");
+    cprintf("\e[1;36m%-6s\e[m", "              `\\  /'                |      | \n");
+    cprintf("\e[1;35m%-6s\e[m", "              /`-.-`\\_             /        \\ \n");
+    cprintf("\e[1;34m%-6s\e[m", "        _..:;\\._/V\\_./:;.._       /   .--.   \\ \n");
+    cprintf("\e[1;33m%-6s\e[m", "      .'/;:;:;\\ /^\\ /:;:;:\\'.     |  (    )  | \n");
+    cprintf("\e[1;32m%-6s\e[m", "     / /;:;:;:\\| |/;:;:;:\\ \\     _\\   '--'  /__ \n");
+    cprintf("\e[1;31m%-6s\e[m", "    / /;:;:;:;:\\_/;:;:;:;:\\ \\  .'   '-.__.-'   `-. \n", "\e[1;0m%-6s\e[m");
+
 	return 0;
 }
 
@@ -61,6 +86,21 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 	// LAB 1: Your code here.
     // HINT 1: use read_ebp().
     // HINT 2: print the current ebp on the first line (not current_ebp[0])
+
+    uint32_t* ebp = (uint32_t*)read_ebp();
+
+    while (ebp != 0) {
+        
+		uint32_t eip = ebp[1]; //ebp[1] is the address of the calling function in previous stack
+        uint32_t* args = ebp + 2; //ebp[2-6] is all the arguments
+		
+		cprintf("Stack backtrace:\n");
+        cprintf("  ebp %08x  eip %08x  args %08x %08x %08x %08x %08x\n",
+                ebp, eip, args[0], args[1], args[2], args[3], args[4]);
+
+        // Move to the next stack frame
+        ebp = (uint32_t*)ebp[0];
+    }
 	return 0;
 }
 
